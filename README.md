@@ -9,7 +9,8 @@ This chart was released using the [helm/chart-releaser](https://github.com/helm/
 
 ## How to release a new version
 1. Make changes to the chart in either a feature branch or the main branch
-2. Run the following commands to create a new release
+2. Make sure that you have the `chart-releaser` tool installed
+3. Run the following commands to create a new release
 
 ```bash
 cr package charts/open-webui
@@ -21,6 +22,8 @@ The above will publish the correct templates and index files to a `gh-pages` bra
 and publish it to github pages
 
 ## How to use the release
-Use a `repository` value of `https://tamu-edu.github.io/open-webui-helm-charts/`
+Use a `repository` value of `https://tamu-edu.github.io/open-webui-helm-charts/` 
+
 Use a `chart` name of `open-webui`
+
 Use a `version` from the repo such as `15.20.1`
