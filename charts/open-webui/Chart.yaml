@@ -1,7 +1,7 @@
 apiVersion: v2
 name: open-webui
-version: 15.20.1
-appVersion: 0.5.16
+version: 16.4.0
+appVersion: 0.6.5
 home: https://www.openwebui.com/
 icon: >-
   https://raw.githubusercontent.com/open-webui/open-webui/main/static/favicon.png
@@ -43,3 +43,8 @@ dependencies:
     version: '>=20.6.2'
     alias: redis-cluster
     condition: redis-cluster.enabled
+  - name: postgresql
+    repository: https://charts.bitnami.com/bitnami
+    version: '>=15.5.38'
+    alias: postgresql
+    condition: postgresql.enabled

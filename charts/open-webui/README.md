@@ -1,6 +1,6 @@
 # open-webui
 
-![Version: 5.20.0](https://img.shields.io/badge/Version-5.20.0-informational?style=flat-square) ![AppVersion: 0.5.16](https://img.shields.io/badge/AppVersion-0.5.16-informational?style=flat-square)
+![Version: 6.4.0](https://img.shields.io/badge/Version-6.4.0-informational?style=flat-square) ![AppVersion: 0.6.5](https://img.shields.io/badge/AppVersion-0.6.5-informational?style=flat-square)
 
 Open WebUI: A User-Friendly Web Interface for Chat Interactions 👋
 
@@ -34,11 +34,77 @@ helm upgrade --install open-webui open-webui/open-webui
 | Repository | Name | Version |
 |------------|------|---------|
 | https://apache.jfrog.io/artifactory/tika | tika | >=2.9.0 |
+| https://charts.bitnami.com/bitnami | postgresql(postgresql) | >=15.5.38 |
 | https://charts.bitnami.com/bitnami | redis-cluster(redis) | >=20.6.2 |
 | https://helm.openwebui.com | pipelines | >=0.0.1 |
 | https://otwld.github.io/ollama-helm/ | ollama | >=0.24.0 |
 
 ## Values
+
+### SSO Configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.enableGroupManagement | bool | `false` | Enable OAuth group management through access token groups claim |
+| sso.enableRoleManagement | bool | `false` | Enable OAuth role management through access token roles claim |
+| sso.enableSignup | bool | `false` | Enable account creation when logging in with OAuth (distinct from regular signup) |
+| sso.enabled | bool | `false` | **Enable SSO authentication globally** must enable to use SSO authentication |
+| sso.groupManagement.groupsClaim | string | `"groups"` | The claim that contains the groups (can be nested, e.g., user.memberOf) |
+| sso.mergeAccountsByEmail | bool | `false` | Allow logging into accounts that match email from OAuth provider (considered insecure) |
+
+### GitHub OAuth configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.github.clientId | string | `""` | GitHub OAuth client ID |
+| sso.github.clientSecret | string | `""` | GitHub OAuth client secret |
+| sso.github.enabled | bool | `false` | Enable GitHub OAuth |
+
+### Google OAuth configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.google.clientId | string | `""` | Google OAuth client ID |
+| sso.google.clientSecret | string | `""` | Google OAuth client secret |
+| sso.google.enabled | bool | `false` | Enable Google OAuth |
+
+### Microsoft OAuth configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.microsoft.clientId | string | `""` | Microsoft OAuth client ID |
+| sso.microsoft.clientSecret | string | `""` | Microsoft OAuth client secret |
+| sso.microsoft.enabled | bool | `false` | Enable Microsoft OAuth |
+| sso.microsoft.tenantId | string | `""` | Microsoft tenant ID - use 9188040d-6c67-4c5b-b112-36a304b66dad for personal accounts |
+
+### OIDC configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.oidc.clientId | string | `""` | OIDC client ID |
+| sso.oidc.clientSecret | string | `""` | OIDC client secret |
+| sso.oidc.enabled | bool | `false` | Enable OIDC authentication |
+| sso.oidc.providerName | string | `"SSO"` | Name of the provider to show on the UI |
+| sso.oidc.providerUrl | string | `""` | OIDC provider well known URL |
+| sso.oidc.scopes | string | `"openid email profile"` | Scopes to request (space-separated). |
+
+### Role management configuration
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.roleManagement.adminRoles | string | `""` | Comma-separated list of roles allowed to log in as admin (receive open webui role admin) |
+| sso.roleManagement.allowedRoles | string | `""` | Comma-separated list of roles allowed to log in (receive open webui role user) |
+| sso.roleManagement.rolesClaim | string | `"roles"` | The claim that contains the roles (can be nested, e.g., user.roles) |
+
+### SSO trusted header authentication
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| sso.trustedHeader.emailHeader | string | `""` | Header containing the user's email address |
+| sso.trustedHeader.enabled | bool | `false` | Enable trusted header authentication |
+| sso.trustedHeader.nameHeader | string | `""` | Header containing the user's name (optional, used for new user creation) |
+
+### Other Values
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -47,14 +113,18 @@ helm upgrade --install open-webui open-webui/open-webui
 | clusterDomain | string | `"cluster.local"` | Value of cluster domain |
 | containerSecurityContext | object | `{}` | Configure container security context ref: <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-containe> |
 | copyAppData.resources | object | `{}` |  |
+| databaseUrl | string | `""` | Configure database URL, needed to work with Postgres (example: `postgresql://<user>:<password>@<service>:<port>/<database>`), leave empty to use the default sqlite database |
+| enableOpenaiApi | bool | `true` | Enables the use of OpenAI APIs |
+| extraEnvFrom | list | `[]` | Env vars added from configmap or secret to the Open WebUI deployment. Most up-to-date environment variables can be found here: https://docs.openwebui.com/getting-started/env-configuration/ (caution: `extraEnvVars` will take precedence over the value from `extraEnvFrom`) |
 | extraEnvVars | list | `[{"name":"OPENAI_API_KEY","value":"0p3n-w3bu!"}]` | Env vars added to the Open WebUI deployment. Most up-to-date environment variables can be found here: https://docs.openwebui.com/getting-started/env-configuration/ |
 | extraEnvVars[0] | object | `{"name":"OPENAI_API_KEY","value":"0p3n-w3bu!"}` | Default API key value for Pipelines. Should be updated in a production deployment, or be changed to the required API key if not using Pipelines |
+| extraInitContainers | list | `[]` | Additional init containers to add to the deployment/statefulset ref: <https://kubernetes.io/docs/concepts/workloads/pods/init-containers/> |
 | extraResources | list | `[]` | Extra resources to deploy with Open WebUI |
 | hostAliases | list | `[]` | HostAliases to be added to hosts-file of each container |
 | image | object | `{"pullPolicy":"IfNotPresent","repository":"ghcr.io/open-webui/open-webui","tag":""}` | Open WebUI image tags can be found here: https://github.com/open-webui/open-webui |
 | imagePullSecrets | list | `[]` | Configure imagePullSecrets to use private registry ref: <https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry> |
 | ingress.additionalHosts | list | `[]` |  |
-| ingress.annotations | object | `{}` | Use appropriate annotations for your Ingress controller, e.g., for NGINX:   |
+| ingress.annotations | object | `{}` | Use appropriate annotations for your Ingress controller, e.g., for NGINX: |
 | ingress.class | string | `""` |  |
 | ingress.enabled | bool | `false` |  |
 | ingress.existingSecret | string | `""` |  |
@@ -75,8 +145,20 @@ helm upgrade --install open-webui open-webui/open-webui
 | openaiBaseApiUrls | list | `[]` | OpenAI base API URLs to use. Overwrites the value in openaiBaseApiUrl if set |
 | persistence.accessModes | list | `["ReadWriteOnce"]` | If using multiple replicas, you must update accessModes to ReadWriteMany |
 | persistence.annotations | object | `{}` |  |
+| persistence.azure.container | string | `""` | Sets the container name for Azure Storage |
+| persistence.azure.endpointUrl | string | `""` | Sets the endpoint URL for Azure Storage |
+| persistence.azure.key | string | `""` | Set the access key for Azure Storage. Optional - if not provided, credentials will be taken from the environment. User credentials if run locally and Managed Identity if run in Azure services |
 | persistence.enabled | bool | `true` |  |
 | persistence.existingClaim | string | `""` | Use existingClaim if you want to re-use an existing Open WebUI PVC instead of creating a new one |
+| persistence.gcs.appCredentialsJson | string | `""` | Contents of Google Application Credentials JSON file. Optional - if not provided, credentials will be taken from the environment. User credentials if run locally and Google Metadata server if run on a Google Compute Engine. File can be generated for a service account following this guide: https://developers.google.com/workspace/guides/create-credentials#service-account |
+| persistence.gcs.bucket | string | `""` | Sets the bucket name for Google Cloud Storage. Bucket must already exist |
+| persistence.provider | string | `"local"` | Sets the storage provider, availables values are `local`, `s3`, `gcs` or `azure` |
+| persistence.s3.accessKey | string | `""` | Sets the access key ID for S3 storage |
+| persistence.s3.bucket | string | `""` | Sets the bucket name for S3 storage |
+| persistence.s3.endpointUrl | string | `""` | Sets the endpoint url for S3 storage |
+| persistence.s3.keyPrefix | string | `""` | Sets the key prefix for a S3 object |
+| persistence.s3.region | string | `""` | Sets the region name for S3 storage |
+| persistence.s3.secretKey | string | `""` | Sets the secret access key for S3 storage |
 | persistence.selector | object | `{}` |  |
 | persistence.size | string | `"2Gi"` |  |
 | persistence.storageClass | string | `""` |  |
@@ -85,7 +167,8 @@ helm upgrade --install open-webui open-webui/open-webui
 | pipelines.extraEnvVars | list | `[]` | This section can be used to pass required environment variables to your pipelines (e.g. Langfuse hostname) |
 | podAnnotations | object | `{}` |  |
 | podLabels | object | `{}` |  |
-| podSecurityContext | object | `{}` | Configure pod security context ref: <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-containe> |
+| podSecurityContext | object | `{}` | Configure pod security context ref: <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-container> |
+| postgresql | object | `{"architecture":"standalone","auth":{"database":"open-webui","password":"0p3n-w3bu!","postgresPassword":"0p3n-w3bu!","username":"open-webui"},"enabled":false,"fullnameOverride":"open-webui-postgres","primary":{"persistence":{"size":"1Gi"},"resources":{"limits":{"cpu":"500m","memory":"512Mi"},"requests":{"cpu":"250m","memory":"256Mi"}}}}` | Postgresql configuration (see. https://artifacthub.io/packages/helm/bitnami/postgresql) |
 | readinessProbe | object | `{}` | Probe for readiness of the Open WebUI container ref: <https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes> |
 | redis-cluster | object | `{"auth":{"enabled":false},"enabled":false,"fullnameOverride":"open-webui-redis","replica":{"replicaCount":3}}` | Deploys a Redis cluster with subchart 'redis' from bitnami |
 | redis-cluster.auth | object | `{"enabled":false}` | Redis Authentication |
@@ -96,6 +179,7 @@ helm upgrade --install open-webui open-webui/open-webui
 | redis-cluster.replica.replicaCount | int | `3` | Number of Redis replica instances |
 | replicaCount | int | `1` |  |
 | resources | object | `{}` |  |
+| runtimeClassName | string | `""` | Configure runtime class ref: <https://kubernetes.io/docs/concepts/containers/runtime-class/> |
 | service | object | `{"annotations":{},"containerPort":8080,"labels":{},"loadBalancerClass":"","nodePort":"","port":80,"type":"ClusterIP"}` | Service values to expose Open WebUI pods to cluster |
 | serviceAccount.annotations | object | `{}` |  |
 | serviceAccount.automountServiceAccountToken | bool | `false` |  |
@@ -110,7 +194,7 @@ helm upgrade --install open-webui open-webui/open-webui
 | volumes | list | `[]` | Configure pod volumes ref: <https://kubernetes.io/docs/tasks/configure-pod-container/configure-volume-storage/> |
 | websocket.enabled | bool | `false` | Enables websocket support in Open WebUI with env `ENABLE_WEBSOCKET_SUPPORT` |
 | websocket.manager | string | `"redis"` | Specifies the websocket manager to use with env `WEBSOCKET_MANAGER`: redis (default) |
-| websocket.redis | object | `{"affinity":{},"annotations":{},"args":[],"command":[],"enabled":true,"image":{"pullPolicy":"IfNotPresent","repository":"redis","tag":"7.4.2-alpine3.21"},"labels":{},"name":"open-webui-redis","pods":{"annotations":{}},"resources":{},"service":{"annotations":{},"containerPort":6379,"labels":{},"nodePort":"","port":6379,"type":"ClusterIP"},"tolerations":[]}` | Deploys a redis |
+| websocket.redis | object | `{"affinity":{},"annotations":{},"args":[],"command":[],"enabled":true,"image":{"pullPolicy":"IfNotPresent","repository":"redis","tag":"7.4.2-alpine3.21"},"labels":{},"name":"open-webui-redis","pods":{"annotations":{}},"resources":{},"securityContext":{},"service":{"annotations":{},"containerPort":6379,"labels":{},"nodePort":"","port":6379,"type":"ClusterIP"},"tolerations":[]}` | Deploys a redis |
 | websocket.redis.affinity | object | `{}` | Redis affinity for pod assignment |
 | websocket.redis.annotations | object | `{}` | Redis annotations |
 | websocket.redis.args | list | `[]` | Redis arguments (overrides default) |
@@ -122,6 +206,7 @@ helm upgrade --install open-webui open-webui/open-webui
 | websocket.redis.pods | object | `{"annotations":{}}` | Redis pod |
 | websocket.redis.pods.annotations | object | `{}` | Redis pod annotations |
 | websocket.redis.resources | object | `{}` | Redis resources |
+| websocket.redis.securityContext | object | `{}` | Redis security context |
 | websocket.redis.service | object | `{"annotations":{},"containerPort":6379,"labels":{},"nodePort":"","port":6379,"type":"ClusterIP"}` | Redis service |
 | websocket.redis.service.annotations | object | `{}` | Redis service annotations |
 | websocket.redis.service.containerPort | int | `6379` | Redis container/target port |

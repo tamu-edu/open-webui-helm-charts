@@ -23,9 +23,13 @@ spec:
         {{- include "websocket.redis.labels" . | nindent 8 }}
       annotations:
         {{- with .Values.websocket.redis.pods.annotations }}
-        {{- toYaml . | nindent 4 }}
+        {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
+      {{- if .Values.websocket.redis.image.pullSecretName }}
+      imagePullSecrets:
+        - name: {{ .Values.websocket.redis.image.pullSecretName }}
+      {{- end }}
       containers:
       - name: {{ .Values.websocket.redis.name }}
         image: "{{ .Values.websocket.redis.image.repository }}:{{ .Values.websocket.redis.image.tag }}"
@@ -51,6 +55,10 @@ spec:
       {{- end }}
       {{- with .Values.websocket.redis.affinity }}
       affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.websocket.redis.securityContext }}
+      securityContext:
         {{- toYaml . | nindent 8 }}
       {{- end }}
 ---
